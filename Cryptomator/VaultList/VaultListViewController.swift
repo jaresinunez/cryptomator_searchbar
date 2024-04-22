@@ -19,6 +19,8 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 	private let viewModel: VaultListViewModelProtocol
 	private var observer: NSObjectProtocol?
 	@Dependency(\.fullVersionChecker) private var fullVersionChecker
+    
+    var searchController: UISearchController!
 
 	init(with viewModel: VaultListViewModelProtocol) {
 		self.viewModel = viewModel
@@ -32,7 +34,11 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = "Cryptomator"
+		title = "The Cryptomator"
+        
+        setupNavigationBar()
+        setupSearchController()
+        
 		let settingsSymbol: UIImage?
 		if #available(iOS 14, *) {
 			settingsSymbol = UIImage(systemName: "gearshape")
@@ -108,4 +114,45 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 			coordinator?.showVaultDetail(for: vaultCellViewModel.vault)
 		}
 	}
+    
+    // New: Setup and configure the search controller
+    private func setupSearchController() {
+        searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Vaults"
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        definesPresentationContext = true
+    }
+
+    // Refactored: Setup navigation bar with dynamic button based on iOS version
+    private func setupNavigationBar() {
+        let settingsSymbol: UIImage?
+        if #available(iOS 14, *) {
+            settingsSymbol = UIImage(systemName: "gearshape")
+        } else {
+            settingsSymbol = UIImage(systemName: "gear")
+        }
+        let settingsButton = UIBarButtonItem(image: settingsSymbol, style: .plain, target: self, action: #selector(showSettings))
+        navigationItem.leftBarButtonItem = settingsButton
+        let addNewVaultButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewVault))
+        navigationItem.rightBarButtonItem = addNewVaultButton
+    }
+
+    private func checkStartupConditions() {
+        if CryptomatorUserDefaults.shared.showOnboardingAtStartup {
+            coordinator?.showOnboarding()
+        } else if fullVersionChecker.hasExpiredTrial, !CryptomatorUserDefaults.shared.showedTrialExpiredAtStartup {
+            coordinator?.showTrialExpired()
+        }
+    }
+}
+
+// New: Extension to handle search results updating
+extension VaultListViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text else { return }
+        // Here, implement your filtering logic based on the search text
+    }
 }

@@ -45,6 +45,12 @@ class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
 		self.vaultCellViewModels = [VaultCellViewModel]()
 	}
 
+    func filterVaultsByName(_ vaultName: String) -> AnyPublisher<[VaultCellViewModel], Never> {
+        let filteredVaults = vaultCellViewModels.filter { $0.vault.vaultName.localizedCaseInsensitiveContains(vaultName) }
+        return Just(filteredVaults).eraseToAnyPublisher()
+    }
+
+    
 	func startListenForChanges() -> AnyPublisher<Result<[TableViewCellViewModel], Error>, Never> {
 		observation = dbManager.observeVaultAccounts(onError: { error in
 			DDLogError("Observe vault accounts failed with error: \(error)")

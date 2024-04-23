@@ -28,6 +28,7 @@ struct ListViewModelAlertContent {
 
 protocol VaultListViewModelProtocol: ListViewModel {
 	func refreshVaultLockStates() -> Promise<Void>
+    var onVaultsUpdated: (() -> Void)? { get set }
 }
 
 protocol AccountListViewModelProtocol: ListViewModel {

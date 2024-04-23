@@ -16,11 +16,19 @@ import UIKit
 class VaultListViewController: ListViewController<VaultCellViewModel> {
 	weak var coordinator: MainCoordinator?
 
-	private let viewModel: VaultListViewModelProtocol
+    private var viewModel: VaultListViewModelProtocol
 	private var observer: NSObjectProtocol?
 	@Dependency(\.fullVersionChecker) private var fullVersionChecker
     
-    var searchController: UISearchController!
+    private var searchController = UISearchController(searchResultsController: nil)
+    
+    private(set) var allVaults: [VaultInfo] = [] {
+        didSet {
+            self.viewModel.onVaultsUpdated?()
+        }
+    }
+    
+    private(set) var filteredVaults: [VaultInfo] = []
 
 	init(with viewModel: VaultListViewModelProtocol) {
 		self.viewModel = viewModel
@@ -38,6 +46,12 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
         
         setupNavigationBar()
         setupSearchController()
+        
+        self.viewModel.onVaultsUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+            }
+        }
         
 		let settingsSymbol: UIImage?
 		if #available(iOS 14, *) {

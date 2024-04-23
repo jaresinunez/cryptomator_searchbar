@@ -16,6 +16,8 @@ import GRDB
 import Promises
 
 class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
+    var onVaultsUpdated: (() -> Void)?
+    
 	var error: AnyPublisher<Error, Never> {
 		errorPublisher.eraseToAnyPublisher()
 	}

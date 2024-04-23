@@ -28,7 +28,9 @@ struct ListViewModelAlertContent {
 
 protocol VaultListViewModelProtocol: ListViewModel {
 	func refreshVaultLockStates() -> Promise<Void>
+    func updateSearchController(searchBarText: String?)
     var onVaultsUpdated: (() -> Void)? { get set }
+    
 }
 
 protocol AccountListViewModelProtocol: ListViewModel {

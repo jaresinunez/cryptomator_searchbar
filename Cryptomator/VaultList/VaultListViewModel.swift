@@ -36,6 +36,14 @@ class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
 	private lazy var errorPublisher = PassthroughSubject<Error, Never>()
 	private lazy var databaseChangedPublisher = CurrentValueSubject<Result<[TableViewCellViewModel], Error>, Never>(.success([]))
 	private var removedRow = false
+    
+    private(set) var allVaults: [VaultInfo] = [] {
+        didSet {
+            self.onVaultsUpdated?()
+        }
+    }
+    
+    private(set) var filteredVaults: [VaultInfo] = []
 
 	convenience init() {
 		self.init(dbManager: DatabaseManager.shared, vaultManager: VaultDBManager.shared)
@@ -142,4 +150,26 @@ class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
 		let updatedVaultListPositions = vaultCellViewModels.map { $0.vault.vaultListPosition }
 		try dbManager.updateVaultListPositions(updatedVaultListPositions)
 	}
+}
+
+extension VaultListViewModel {
+    
+    public func inSearchMode(_ searchController: UISearchController) -> Bool {
+        let isActive = searchController.isActive
+        let searchText = searchController.searchBar.text ?? ""
+        
+        return isActive && !searchText.isEmpty
+    }
+    
+    public func updateSearchController(searchBarText: String?) {
+        self.filteredVaults = allVaults
+        
+        if let searchText = searchBarText?.lowercased() {
+            guard !searchText.isEmpty else { self.onVaultsUpdated?(); return }
+            
+            self.filteredVaults = self.filteredVaults.filter({
+                $0.vaultName.lowercased().contains(searchText)
+            })
+        }
+    }
 }

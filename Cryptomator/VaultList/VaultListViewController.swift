@@ -22,13 +22,7 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
     
     private var searchController = UISearchController(searchResultsController: nil)
     
-    private(set) var allVaults: [VaultInfo] = [] {
-        didSet {
-            self.viewModel.onVaultsUpdated?()
-        }
-    }
     
-    private(set) var filteredVaults: [VaultInfo] = []
 
 	init(with viewModel: VaultListViewModelProtocol) {
 		self.viewModel = viewModel

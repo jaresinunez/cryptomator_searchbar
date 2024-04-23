@@ -152,6 +152,7 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 // New: Extension to handle search results updating
 extension VaultListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
+        print("DEBUG PRINT:", searchController.searchBar.text)
         guard let text = searchController.searchBar.text else { return }
         // Here, implement your filtering logic based on the search text
     }

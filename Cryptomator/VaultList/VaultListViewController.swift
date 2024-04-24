@@ -85,13 +85,37 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 		tableView.register(VaultCell.self, forCellReuseIdentifier: "VaultCell")
 	}
 
-	override func configureDataSource() {
-		dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
-			let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
-			cell?.configure(with: cellViewModel)
-			return cell
-		})
-	}
+//	override func configureDataSource() {
+//		dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
+//			let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
+//			cell?.configure(with: cellViewModel)
+//			return cell
+//		})
+//	}
+    
+    override func configureDataSource() {
+        dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, indexPath, cellViewModel in
+            let inSearchMode = !self.searchController.searchBar.text!.isEmpty
+            let vaults = inSearchMode ? self.viewModel.filteredVaults : self.viewModel.allVaults
+            
+            // Check if the index is within bounds
+            guard indexPath.row < vaults.count else {
+                 // Log error and return a dummy cell
+                 NSLog("Attempted to access index \(indexPath.row) which is out of bounds for vaults count \(vaults.count)")
+                 return UITableViewCell()
+             }
+            let vault = vaults.element(at: indexPath.row)
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell", for: indexPath) as? VaultCell,
+                  let vault = vault else {
+                return UITableViewCell()  // Return an empty or configured "error" cell if preferred
+            }
+            cell.configure(with: vault as! VaultCellViewModel)
+            return cell
+
+        })
+    }
+
+
 
 	override func setEditing(_ editing: Bool, animated: Bool) {
 		super.setEditing(editing, animated: animated)
@@ -122,6 +146,8 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 			coordinator?.showVaultDetail(for: vaultCellViewModel.vault)
 		}
 	}
+    
+    
     
     // New: Setup and configure the search controller
     private func setupSearchController() {
@@ -161,6 +187,14 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 extension VaultListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         print("DEBUG PRINT:", searchController.searchBar.text)
-        self.viewModel.updateSearchController(searchBarText: searchController.searchBar.text)
+        self.viewModel.updateSearchController(searchBarText: searchController.searchBar.text ?? "")
+        self.tableView.reloadData()
     }
 }
+
+extension Array {
+    func element(at index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+

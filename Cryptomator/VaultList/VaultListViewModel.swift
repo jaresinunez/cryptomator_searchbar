@@ -18,6 +18,7 @@ import Promises
 class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
     var onVaultsUpdated: (() -> Void)?
     
+    
 	var error: AnyPublisher<Error, Never> {
 		errorPublisher.eraseToAnyPublisher()
 	}
@@ -37,13 +38,19 @@ class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
 	private lazy var databaseChangedPublisher = CurrentValueSubject<Result<[TableViewCellViewModel], Error>, Never>(.success([]))
 	private var removedRow = false
     
-    private(set) var allVaults: [VaultInfo] = [] {
-        didSet {
-            self.onVaultsUpdated?()
-        }
-    }
+    var inSearchMode: Bool = false
+    var filteredVaults: [VaultItem] = []
+    var allVaults: [VaultItem] = []
     
-    private(set) var filteredVaults: [VaultInfo] = []
+    func filterVaults(searchText: String) {
+            if searchText.isEmpty {
+                filteredVaults = allVaults
+            } else { filteredVaults = allVaults.filter { vault in
+                return vault.name.contains(searchText)
+            }
+        }
+        inSearchMode = !searchText.isEmpty
+    }
 
 	convenience init() {
 		self.init(dbManager: DatabaseManager.shared, vaultManager: VaultDBManager.shared)
@@ -168,7 +175,7 @@ extension VaultListViewModel {
             guard !searchText.isEmpty else { self.onVaultsUpdated?(); return }
             
             self.filteredVaults = self.filteredVaults.filter({
-                $0.vaultName.lowercased().contains(searchText)
+                $0.name.lowercased().contains(searchText)
             })
         }
     }

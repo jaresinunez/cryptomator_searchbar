@@ -10,6 +10,7 @@ import Combine
 import CryptomatorCommonCore
 import Foundation
 import Promises
+import UIKit
 
 protocol ListViewModel {
 	var headerTitle: String { get }
@@ -29,6 +30,9 @@ struct ListViewModelAlertContent {
 protocol VaultListViewModelProtocol: ListViewModel {
 	func refreshVaultLockStates() -> Promise<Void>
     func updateSearchController(searchBarText: String?)
+    func inSearchMode(_ searchController: UISearchController) -> Bool
+    var filteredVaults: [VaultItem] {get}
+    var allVaults: [VaultItem] { get }
     var onVaultsUpdated: (() -> Void)? { get set }
     
 }

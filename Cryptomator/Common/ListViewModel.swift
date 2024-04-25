@@ -31,8 +31,8 @@ protocol VaultListViewModelProtocol: ListViewModel {
 	func refreshVaultLockStates() -> Promise<Void>
     func updateSearchController(searchBarText: String?)
     func inSearchMode(_ searchController: UISearchController) -> Bool
-    var filteredVaults: [VaultItem] {get}
-    var allVaults: [VaultItem] { get }
+    var filteredVaults: [VaultInfo] {get}
+    var allVaults: [VaultInfo] { get }
     var onVaultsUpdated: (() -> Void)? { get set }
     
 }

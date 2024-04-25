@@ -85,31 +85,15 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 		tableView.register(VaultCell.self, forCellReuseIdentifier: "VaultCell")
 	}
 
-//	override func configureDataSource() {
-//		dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
-//			let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
-//			cell?.configure(with: cellViewModel)
-//			return cell
-//		})
-//	}
+	override func configureDataSource() {
+		dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
+			let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
+			cell?.configure(with: cellViewModel)
+			return cell
+		})
+	}
     
-    override func configureDataSource() {
-        dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
-            let inSearchMode = !self.searchController.searchBar.text!.isEmpty
-            let vaults = inSearchMode ? self.viewModel.filteredVaults : self.viewModel.allVaults
-            
-
-            let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
-
-            cell?.configure(with: cellViewModel)
-            return cell
-
-        })
-    }
-
-
-
-	override func setEditing(_ editing: Bool, animated: Bool) {
+   	override func setEditing(_ editing: Bool, animated: Bool) {
 		super.setEditing(editing, animated: animated)
 		header.isEditing = editing
 	}
@@ -132,13 +116,39 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 		coordinator?.showSettings()
 	}
 
-	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		super.tableView(tableView, didSelectRowAt: indexPath)
-		if let vaultCellViewModel = dataSource?.itemIdentifier(for: indexPath) {
-			coordinator?.showVaultDetail(for: vaultCellViewModel.vault)
-		}
-	}
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let inSearchMode = self.viewModel.inSearchMode(searchController)
+        return inSearchMode ? self.viewModel.filteredVaults.count : self.viewModel.allVaults.count
+    }
     
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        dataSource = EditableDataSource<Section, VaultCellViewModel>(tableView: tableView, cellProvider: { tableView, _, cellViewModel in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "VaultCell") as? VaultCell
+            cell?.configure(with: cellViewModel)
+           
+            let inSearchMode = self.viewModel.inSearchMode(self.searchController)
+           
+            let vault = inSearchMode ? self.viewModel.filteredVaults[indexPath.row] : self.viewModel.allVaults[indexPath.row]
+            
+            cell?.configure(with: cellViewModel)
+            return cell
+            
+            
+        })
+        
+        return UITableViewCell()
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        super.tableView(tableView, didSelectRowAt: indexPath)
+        if let vaultCellViewModel = dataSource?.itemIdentifier(for: indexPath) {
+            coordinator?.showVaultDetail(for: vaultCellViewModel.vault)
+        }
+        
+        let inSearchMode = self.viewModel.inSearchMode(self.searchController)
+       
+        let vault = inSearchMode ? self.viewModel.filteredVaults[indexPath.row] : self.viewModel.allVaults[indexPath.row]
+    }
     
     
     // New: Setup and configure the search controller
@@ -177,10 +187,15 @@ class VaultListViewController: ListViewController<VaultCellViewModel> {
 
 // New: Extension to handle search results updating
 extension VaultListViewController: UISearchResultsUpdating {
+  
     func updateSearchResults(for searchController: UISearchController) {
         print("DEBUG PRINT:", searchController.searchBar.text)
-        self.viewModel.updateSearchController(searchBarText: searchController.searchBar.text ?? "")
-        self.tableView.reloadData()
+        guard let searchText = searchController.searchBar.text else { return }
+         viewModel.updateSearchController(searchBarText: searchText)
+        
+        
+        //        self.viewModel.updateSearchController(searchBarText: searchController.searchBar.text ?? "")
+//        self.tableView.reloadData()
     }
 }
 

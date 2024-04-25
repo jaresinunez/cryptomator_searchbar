@@ -39,14 +39,15 @@ class VaultListViewModel: ViewModel, VaultListViewModelProtocol {
 	private var removedRow = false
     
     var inSearchMode: Bool = false
-    var filteredVaults: [VaultItem] = []
-    var allVaults: [VaultItem] = []
+    var filteredVaults: [VaultInfo] = []
+    var allVaults: [VaultInfo] = []
+    var vaults: [VaultInfo] = []
     
     func filterVaults(searchText: String) {
             if searchText.isEmpty {
                 filteredVaults = allVaults
             } else { filteredVaults = allVaults.filter { vault in
-                return vault.name.contains(searchText)
+                return vault.vaultName.contains(searchText)
             }
         }
         inSearchMode = !searchText.isEmpty
@@ -175,7 +176,7 @@ extension VaultListViewModel {
             guard !searchText.isEmpty else { self.onVaultsUpdated?(); return }
             
             self.filteredVaults = self.filteredVaults.filter({
-                $0.name.lowercased().contains(searchText)
+                $0.vaultName.lowercased().contains(searchText)
             })
         }
     }
